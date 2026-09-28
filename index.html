@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lease Check — 新リース会計のリース判定</title>
+  <meta name="description" content="新リース会計基準（企業会計基準第34号）のリース判定を、質問に答えながらたどれる研修用アプリ。演習6契約・仕訳計算・Claude 用プロンプト生成つき。">
+  <meta name="theme-color" content="#F2F2F2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B1626" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lease Check">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="brand"><a href="#/judge"><img src="icons/icon.svg" alt="" width="26" height="26"><span>Lease Check</span></a><small>新リース会計 ・ リース判定</small></div>
+  <main id="app" class="app" aria-live="polite"></main>
+  <nav id="tabbar" class="tabbar" aria-label="メインナビゲーション"></nav>
+  <div id="toast-root" class="toast-root" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:24px">このアプリを使うには JavaScript を有効にしてください。</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
