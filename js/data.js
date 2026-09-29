@@ -2,10 +2,10 @@
 // 研修資料「AI活用研修 — 新リース会計のリース判定を Claude で行う」の演習データ（株式会社サンプル商事・6契約）に準拠
 
 export const ROLES = [
-  { id: 'lessee', label: '借手', sub: '使用権資産・リース負債を計上するか', start: 'asset' },
-  { id: 'lessor', label: '貸手', sub: 'ファイナンス・リースかオペレーティング・リースか', start: 'l_ident' },
-  { id: 'sublease', label: '中間貸手（サブリース）', sub: '借りた資産を第三者に転貸している', start: 's_head' },
-  { id: 'slb', label: 'セール＆リースバック', sub: '自社資産を売却して借り戻す（売手である借手）', start: 'b_buyback' },
+  { id: 'lessee', color: 'vermilion', icon: '<path d="M12 3v18M5 7h14M7 7l-3 7a3.5 3.5 0 0 0 6 0L7 7zM17 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7z"/>', label: '借手', sub: '使用権資産・リース負債を計上するか', start: 'asset' },
+  { id: 'lessor', color: 'indigo', icon: '<path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/>', label: '貸手', sub: 'ファイナンス・リースかオペレーティング・リースか', start: 'l_ident' },
+  { id: 'sublease', color: 'teal', icon: '<path d="M4 7h13l-3-3M20 17H7l3 3"/>', label: '中間貸手（サブリース）', sub: '借りた資産を第三者に転貸している', start: 's_head' },
+  { id: 'slb', color: 'plum', icon: '<path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>', label: 'セール＆リースバック', sub: '自社資産を売却して借り戻す（売手である借手）', start: 'b_buyback' },
 ];
 
 // 選択肢の ask は「不明・要確認」を選んだときに確認事項へ積む文言

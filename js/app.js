@@ -15,6 +15,8 @@ const store = (() => {
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const app = $('#app');
+const COLORS = ['vermilion', 'mustard', 'teal', 'indigo', 'plum', 'moss'];
+const colorOf = (id) => 'c-' + COLORS[CONTRACTS.findIndex((c) => c.id === id) % COLORS.length];
 
 const TABS = [
   { id: 'judge', label: '判定', icon: '<path d="M12 3v18M5 7h14M7 7l-3 7a3.5 3.5 0 0 0 6 0L7 7zM17 7l-3 7a3.5 3.5 0 0 0 6 0l-3-7z"/>' },
@@ -81,15 +83,15 @@ function back() {
 
 function renderJudge() {
   if (!wz) {
-    app.innerHTML = head('新リース会計 ・ 企業会計基準第34号', 'リース判定ナビ', '質問に答えていくと、リースの識別から会計処理の分類までを順にたどれます。迷う点は「不明・要確認」を選べば、確認事項として最後にまとめます。') + `
+    app.innerHTML = head('新リース会計 ・ 企業会計基準第34号', '<span class="mk">リース判定</span>ナビ', '質問に答えていくと、リースの識別から会計処理の分類までを順にたどれます。迷う点は「不明・要確認」を選べば、確認事項として最後にまとめます。') + `
       <section class="block">
         <h2 class="h2">立場を選ぶ</h2>
-        <div class="roles">${ROLES.map((r) => `<button class="role" data-role="${r.id}"><strong>${r.label}</strong><span>${r.sub}</span>${svg('<path d="M9 6l6 6-6 6"/>', 20)}</button>`).join('')}</div>
+        <div class="roles">${ROLES.map((r) => `<button class="role c-${r.color}" data-role="${r.id}"><span class="role-ic">${svg(r.icon, 24)}</span><span class="role-tx"><strong>${r.label}</strong><span>${r.sub}</span></span>${svg('<path d="M9 6l6 6-6 6"/>', 20)}</button>`).join('')}</div>
       </section>
       <section class="block">
         <h2 class="h2">演習の契約から始める</h2>
         <p class="muted">株式会社サンプル商事の6契約。条件を見ながら判定をたどれます。</p>
-        <div class="chips">${CONTRACTS.map((c) => `<button class="chip" data-from="${c.id}"><b>${c.id}</b> ${esc(c.name)}</button>`).join('')}</div>
+        <div class="chips">${CONTRACTS.map((c) => `<button class="chip ${colorOf(c.id)}" data-from="${c.id}"><b>${c.id}</b> ${esc(c.name)}</button>`).join('')}</div>
       </section>`;
     app.querySelectorAll('[data-role]').forEach((b) => b.onclick = () => startWizard(b.dataset.role));
     app.querySelectorAll('[data-from]').forEach((b) => b.onclick = () => { const c = CONTRACTS.find((x) => x.id === b.dataset.from); startWizard(c.role, c.id); });
@@ -103,6 +105,7 @@ function renderJudge() {
       <span class="pill">${esc(role.label)}</span>
       <button class="ghost" id="wz-reset">最初から</button>
     </div>
+    <div class="prog" aria-hidden="true"><i style="width:${wz.cur.startsWith('R_') ? 100 : Math.min(92, 8 + wz.path.length * 11)}%"></i></div>
     ${from ? `<div class="ctx"><b>${from.id} ${esc(from.name)}</b><span>${esc(from.cond)}</span></div>` : ''}`;
 
   if (wz.cur.startsWith('R_')) return renderResult(top);
@@ -333,11 +336,11 @@ function renderDrill() {
   const scores = store.get('quiz', {});
   const n = Object.keys(scores).length, ok = Object.values(scores).filter((x) => x).length;
   if (!drillOpen) {
-    app.innerHTML = head('演習 ・ 株式会社サンプル商事', '6契約を判定する', '実務で判断が分かれやすい論点を1件ずつ仕込んだ演習データです。1問答えると、研修資料の解説と辞書への質問が開きます。') + `
+    app.innerHTML = head('演習 ・ 株式会社サンプル商事', '<span class="mk">6契約</span>を判定する', '実務で判断が分かれやすい論点を1件ずつ仕込んだ演習データです。1問答えると、研修資料の解説と辞書への質問が開きます。') + `
       <div class="score"><div><strong>${ok}</strong><span>/ ${CONTRACTS.length} 正解</span></div><div class="bar"><i style="width:${(n / CONTRACTS.length) * 100}%"></i></div>${n ? '<button class="ghost" id="q-reset">リセット</button>' : ''}</div>
       <div class="cards">${CONTRACTS.map((c) => {
         const s = scores[c.id];
-        return `<button class="ccard" data-id="${c.id}">
+        return `<button class="ccard ${colorOf(c.id)}" data-id="${c.id}">
           <div class="ctop"><b>${c.id}</b>${s === undefined ? '<span class="st">未回答</span>' : s ? '<span class="st ok">正解</span>' : '<span class="st ng">要復習</span>'}</div>
           <h3>${esc(c.name)}</h3><p>${esc(c.cond)}</p><small>論点：${esc(c.issue)}</small></button>`;
       }).join('')}</div>`;
@@ -362,8 +365,8 @@ function renderDrill() {
       }).join('')}</div>
     </section>
     ${picked === null ? `<p class="muted center">答えを選ぶと解説が開きます</p><div class="btns stack"><button class="secondary" id="d-wz">判定ナビでたどってみる</button></div>` : `
-    <section class="result tone-${picked === c.quiz.answer ? 'on' : 'fin'}">
-      <span class="badge">${picked === c.quiz.answer ? '正解' : '不正解'}</span>
+    <section class="result tone-${picked === c.quiz.answer ? 'ok' : 'ng'}">
+      <span class="badge">${picked === c.quiz.answer ? '正解！' : 'おしい！'}</span>
       <h2>${esc(c.judge)}</h2>
       <p class="why">論点：${esc(c.issue)}</p>
     </section>
@@ -395,9 +398,9 @@ function renderDrill() {
 // ════════════════════════════════════════
 function renderCalc() {
   const s = { pay: 2000000, months: 60, rate: 2, timing: 'arrears', idc: 0, ...store.get('calc', {}) };
-  app.innerHTML = head('借手 ・ 使用権資産とリース負債', '仕訳と償却表', '月額リース料・リース期間・割引率から、期首の計上額と毎月の仕訳、年ごとの償却表をつくります。CSV を Excel に取り込んで検算できます。') + `
+  app.innerHTML = head('借手 ・ 使用権資産とリース負債', '<span class="mk">仕訳</span>と償却表', '月額リース料・リース期間・割引率から、期首の計上額と毎月の仕訳、年ごとの償却表をつくります。CSV を Excel に取り込んで検算できます。') + `
     <section class="block form">
-      <div class="presets">${CONTRACTS.filter((c) => c.calc).map((c) => `<button class="chip" data-p="${c.id}"><b>${c.id}</b> ${esc(c.name)}</button>`).join('')}</div>
+      <div class="presets">${CONTRACTS.filter((c) => c.calc).map((c) => `<button class="chip ${colorOf(c.id)}" data-p="${c.id}"><b>${c.id}</b> ${esc(c.name)}</button>`).join('')}</div>
       <div class="row2">
         ${field('c-pay', '月額リース料', s.pay.toLocaleString(), '円')}
         ${field('c-months', 'リース期間', s.months, 'か月')}
@@ -503,7 +506,7 @@ function renderPrompt() {
     contracts: store.get('promptContracts', DEFAULT_CONTRACTS),
     persp: store.get('promptPersp', PERSPECTIVES.map((p) => p.id)),
   };
-  app.innerHTML = head('第2部・第3部 ・ そのまま入力', 'プロンプトをつくる', '研修の4要素（目的・前提・出力の形・判断の基準）で判定プロンプト v2 を組み立てます。お客様の機密情報は入れず、契約の要点を匿名化して貼ってください。') + `
+  app.innerHTML = head('第2部・第3部 ・ そのまま入力', '<span class="mk">プロンプト</span>をつくる', '研修の4要素（目的・前提・出力の形・判断の基準）で判定プロンプト v2 を組み立てます。お客様の機密情報は入れず、契約の要点を匿名化して貼ってください。') + `
     <section class="block form">
       <div class="row3">
         ${field('p-company', '会社名（架空・匿名）', st.company, '')}
@@ -557,7 +560,7 @@ function renderPrompt() {
 // 基準メモ
 // ════════════════════════════════════════
 function renderNotes() {
-  app.innerHTML = head('IFRS × AI 勉強会', '基準メモ', '判定の骨格と、IFRS 16 との違いを1枚にまとめました。項番号はあえて載せていません。辞書 Project で原文を引いて確かめてください。') + `
+  app.innerHTML = head('IFRS × AI 勉強会', '<span class="mk">基準メモ</span>', '判定の骨格と、IFRS 16 との違いを1枚にまとめました。項番号はあえて載せていません。辞書 Project で原文を引いて確かめてください。') + `
     <section class="block">
       <h2 class="h2">判定の骨格 — 借手</h2>
       <ol class="flow">
