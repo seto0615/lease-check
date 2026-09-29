@@ -50,9 +50,9 @@ const claudeUrl = (text) => 'https://claude.ai/new?q=' + encodeURIComponent(text
 function go(tab) { location.hash = '#/' + tab; }
 function route() {
   const tab = (location.hash.match(/^#\/(\w+)/) || [])[1] || 'judge';
-  const t = TABS.some((x) => x.id === tab) ? tab : 'judge';
+  const t = TABS.some((x) => x.id === tab) || tab === 'making' ? tab : 'judge';
   $('#tabbar').innerHTML = TABS.map((x) => `<a href="#/${x.id}" class="tab${x.id === t ? ' on' : ''}" ${x.id === t ? 'aria-current="page"' : ''}>${svg(x.icon)}<span>${x.label}</span></a>`).join('');
-  ({ judge: renderJudge, drill: renderDrill, calc: renderCalc, prompt: renderPrompt, notes: renderNotes })[t]();
+  ({ judge: renderJudge, drill: renderDrill, calc: renderCalc, prompt: renderPrompt, notes: renderNotes, making: renderMaking })[t]();
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
@@ -92,7 +92,8 @@ function renderJudge() {
         <h2 class="h2">演習の契約から始める</h2>
         <p class="muted">株式会社サンプル商事の6契約。条件を見ながら判定をたどれます。</p>
         <div class="chips">${CONTRACTS.map((c) => `<button class="chip ${colorOf(c.id)}" data-from="${c.id}"><b>${c.id}</b> ${esc(c.name)}</button>`).join('')}</div>
-      </section>`;
+      </section>
+      <a class="appx" href="#/making"><span class="appx-tag">付録</span><strong>このアプリは Claude への3つの指示で作りました</strong><span>実際の指示文と、その裏で Claude がしたこと</span>${svg('<path d="M9 6l6 6-6 6"/>', 20)}</a>`;
     app.querySelectorAll('[data-role]').forEach((b) => b.onclick = () => startWizard(b.dataset.role));
     app.querySelectorAll('[data-from]').forEach((b) => b.onclick = () => { const c = CONTRACTS.find((x) => x.id === b.dataset.from); startWizard(c.role, c.id); });
     return;
@@ -587,7 +588,87 @@ function renderNotes() {
       <h2 class="h2">入力してよい情報</h2>
       <ul class="lvl"><li class="ok"><b>入力可</b>基準・適用指針・IFRS 16、有価証券報告書の開示例などの公開情報</li><li class="ok"><b>入力可</b>社名・物件名を伏せた契約条件、架空の演習データ</li><li class="ng"><b>入力不可</b>契約書の原本 PDF、取引先名入りのリース一覧、お客様との会議記録</li></ul>
     </section>
+    <a class="appx" href="#/making"><span class="appx-tag">付録</span><strong>このアプリは Claude への3つの指示で作りました</strong><span>実際の指示文と、その裏で Claude がしたこと</span>${svg('<path d="M9 6l6 6-6 6"/>', 20)}</a>
     <p class="fine">本アプリは研修用の学習ツールで、会計処理の最終判断を代替するものではありません。内容は企業会計基準第34号「リースに関する会計基準」・企業会計基準適用指針第33号（2024年9月公表）を前提に作成しています。<br>はてなベース株式会社</p>`;
+}
+
+// ════════════════════════════════════════
+// 付録：このアプリの作り方（Claude への指示）
+// ════════════════════════════════════════
+const MAKING_ASKS = [
+  {
+    n: '指示 1', title: 'つくって公開する',
+    text: '以前作ってくれた英単語アプリみたいな感じで明日のIFRS×AI勉強会に必要な新リース会計のリース判定アプリをつくって私のgithubで公開してみてよ。（研修資料の Claude Design の URL）',
+    did: ['研修資料（25枚）を読み、演習の6契約・解説・辞書への質問・仕訳の出力例を抜き出す', '以前の英単語アプリの構成（ビルド不要の Web アプリ・GitHub Pages）を読んで、同じ作りにする', '画面を5つに分けて設計し、判定フロー・計算・プロンプト生成を実装する', 'iPhone の表示で一通り操作して確かめ、GitHub に公開する'],
+  },
+  {
+    n: '指示 2', title: '見た目を変える',
+    text: '以前作った英単語アプリみたいに、もうちょっとポップで見やすく可愛くして？',
+    did: ['英単語アプリのデザイン（色・線・影・書体）を読み取って、同じ文法で描き直す', '契約や立場ごとに色を分け、正解スタンプや進捗バーを足す', 'スクリーンショットで崩れがないか見てから公開する'],
+  },
+  {
+    n: '指示 3', title: '作り方を残す',
+    text: 'アプリの中に、付録としてこのアプリをどのようにclaudeに命令して作ったかを書いてあげて',
+    did: ['これまでの指示とやったことを振り返り、このページを書く'],
+  },
+];
+const MAKING_TEMPLATE = `# 目的
+明日の研修で受講者が使う、新リース会計のリース判定を学べる Web アプリを作ってください。受講者はスマホで開きます。
+
+# 前提
+・研修資料はこれです：（資料の URL やファイル）。演習データ（契約6件）と解説はここから取ってください
+・以前作ったこのアプリと同じ作り・見た目にしてください：（参考アプリの場所）
+・私の GitHub で公開します
+
+# 出力の形
+・画面は「判定フロー」「演習クイズ」「仕訳計算」「プロンプト生成」「基準メモ」の5つ
+・公開 URL と、確かめた内容を最後に報告してください
+
+# 判断の基準
+・企業会計基準第34号に沿うこと。自信のない記載には「要原文確認」を付ける
+・項番号は載せない（受講者が原文で引く練習をするため）
+・お客様の情報は入れない。演習データは架空の会社のものだけ使う`;
+
+function renderMaking() {
+  app.innerHTML = head('付録 ・ Claude Code で作りました', 'このアプリの<span class="mk">作り方</span>', '研修の第1部と同じ考え方で作っています。送った指示はたった3つ。短い指示でも形になったのは、「前提」を参考物で渡したからです。') + `
+    <section class="block">
+      <h2 class="h2">実際に送った指示</h2>
+      <ol class="asks">${MAKING_ASKS.map((a, i) => `
+        <li class="c-${['vermilion', 'teal', 'plum'][i]}">
+          <div class="ask-h"><b>${a.n}</b><span>${a.title}</span></div>
+          <div class="bubble">${esc(a.text)}</div>
+          <p class="did-h">Claude がしたこと</p>
+          <ul class="dots">${a.did.map((d) => `<li>${esc(d)}</li>`).join('')}</ul>
+        </li>`).join('')}</ol>
+      <p class="fine">途中で作業が止まったときに「つづけて」と送ったほかは、指示はこの3つだけです。</p>
+    </section>
+    <section class="block">
+      <h2 class="h2">短い指示で済んだ理由 — 4要素で読む</h2>
+      <div class="four">
+        <div><b>目的</b><span>「明日の勉強会に必要な」「リース判定アプリ」。誰が何に使うかは一文で伝わる</span></div>
+        <div><b>前提</b><span>研修資料の URL を渡したので、演習データ・解説・用語をすべて資料から取れた</span></div>
+        <div><b>出力の形</b><span>「英単語アプリみたいに」の一言で、作り・見た目・公開方法まで決まった</span></div>
+        <div><b>判断の基準</b><span>ここは指示していない。Claude が研修資料の方針（原文で裏取り・機密は入れない）から補った</span></div>
+      </div>
+      <div class="lesson"><b>ポイント</b><span>長い説明を書くより、参考になる実物（資料・過去の成果物）を渡すほうが早く、ぶれない。</span></div>
+    </section>
+    <section class="block">
+      <h2 class="h2">作ったあとに確かめたこと</h2>
+      <ul class="dots">
+        <li>計算：月額 2,000,000・60か月・年2% でリース負債 114,104,711、最終月に残高 0 になることを確認</li>
+        <li>画面：iPhone の表示で判定・演習・計算・プロンプトを通しで操作し、エラーがないことを確認</li>
+        <li>Claude の誤り：P/L への影響の説明文に誤りがあった。Claude が自分でスクリーンショットを見直して気づき、直した。作らせたアプリでも、中身の裏取りは要る</li>
+        <li>資料の不整合：アプリで計算したことで、研修資料の仕訳例の数字の前提が揃っていないことが見つかった</li>
+      </ul>
+    </section>
+    <section class="block">
+      <h2 class="h2">自分で作るなら — 4要素の指示文</h2>
+      <p class="muted">最初から4要素で書くと、やり直しがさらに減ります。（ ）の中を自分のものに差し替えてください。</p>
+      <pre class="prompt">${esc(MAKING_TEMPLATE)}</pre>
+      <div class="btns"><button class="primary" id="m-copy">コピー</button></div>
+    </section>
+    <p class="fine">使ったもの：Claude Code（Claude Opus 5.5）、Claude Design の研修資料、GitHub Pages。</p>`;
+  $('#m-copy').onclick = () => copy(MAKING_TEMPLATE);
 }
 
 route();

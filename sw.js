@@ -1,5 +1,5 @@
 // オフライン対応：同一オリジンのGETを「ネットワーク優先・失敗時はキャッシュ」で返す
-const CACHE = 'leasecheck-v2';
+const CACHE = 'leasecheck-v3';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/data.js', 'js/calc.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {
